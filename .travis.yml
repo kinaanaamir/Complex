@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t kinaan/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run kinaan/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t kinaan/multi-client ./client
+  - docker build -t kinaan/multi-nginx ./nginx
+  - docker build -t kinaan/multi-server ./server
+  - docker build -t kinaan/multi-worker ./worker
+  
+  # log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push kinaan/multi-client
+  - docker push kinaan/multi-nginx
+  - docker push kinaan/multi-server
+  - docker push kinaan/multi-worker
